@@ -3,8 +3,6 @@ package main
 import (
 	"fmt"
 	"github.com/jroimartin/gocui"
-	//	"github.com/lucasweiblen/github-explorer/requests"
-	//	"github.com/lucasweiblen/github-explorer/types"
 	"log"
 	"os"
 )
@@ -47,9 +45,6 @@ func main() {
 		log.Panicln(err)
 	}
 
-	//	if err := g.SetKeybinding("", gocui.KeyArrowDown, gocui.ModNone, goDown); err != nil {
-	//		log.Panicln(err)
-	//	}
 	if err := g.SetKeybinding(MAIN_VIEW, gocui.KeyArrowDown, gocui.ModNone, goDown); err != nil {
 		log.Panicln(err)
 	}
@@ -78,12 +73,8 @@ func main() {
 
 func layout(g *gocui.Gui) error {
 	widthTerm, heightTerm := g.Size()
-	//log.Printf("Width: %d", widthTerm)
-	//log.Printf("Height: %d", heightTerm)
 
 	relWidth, _ := relativeSize(g)
-	//log.Printf("Relative Width: %d", relWidth)
-	//log.Printf("Relative Height: %d", relHeight)
 	if langView, err := g.SetView(LANG_VIEW, 0, 0, relWidth, heightTerm-1); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
@@ -178,21 +169,33 @@ func getLine(g *gocui.Gui, v *gocui.View) error {
 	}
 	log.Println("Searching for language: ", l)
 
-	var repos string
-	go func() {
-		for _, repo := range GetTrendingRepos(l, "daily") {
-			repos += fmt.Sprintf("%s\n\n", repo.Name)
-			repos += fmt.Sprintf("* %s\n", repo.Description)
-			repos += fmt.Sprintf("* %s\n", repo.Author)
-			repos += fmt.Sprintf("* %s\n", repo.Url)
-			repos += fmt.Sprintf("* %d\n\n", repo.Stars)
-		}
-		g.Update(func(g *gocui.Gui) error {
-			mainView, _ := g.View(MAIN_VIEW)
-			mainView.Clear()
-			fmt.Fprintln(mainView, repos)
-			return nil
-		})
-	}()
+	//	var repos string
+	//	go func() {
+	//		for _, repo := range GetTrendingRepos(l, "daily") {
+	//			repos += fmt.Sprintf("%s\n\n", repo.Name)
+	//			repos += fmt.Sprintf("* %s\n", repo.Description)
+	//			repos += fmt.Sprintf("* %s\n", repo.Author)
+	//			repos += fmt.Sprintf("* %s\n", repo.Url)
+	//			repos += fmt.Sprintf("* %d\n\n", repo.Stars)
+	//		}
+	//		g.Update(func(g *gocui.Gui) error {
+	//			mainView, _ := g.View(MAIN_VIEW)
+	//			mainView.Clear()
+	//			fmt.Fprintln(mainView, repos)
+	//			return nil
+	//		})
+	//	}()
+	var reposChan chan string
+	reposChan = make(chan string)
+	go GetTrendingRepos(l, "daily", reposChan)
+
+	g.Update(func(g *gocui.Gui) error {
+		mainView, _ := g.View(MAIN_VIEW)
+		mainView.Clear()
+		fmt.Fprintln(mainView, <-reposChan)
+		return nil
+	})
+
+	//log.Println(<-reposChan)
 	return nil
 }
