@@ -169,22 +169,6 @@ func getLine(g *gocui.Gui, v *gocui.View) error {
 	}
 	log.Println("Searching for language: ", l)
 
-	//	var repos string
-	//	go func() {
-	//		for _, repo := range GetTrendingRepos(l, "daily") {
-	//			repos += fmt.Sprintf("%s\n\n", repo.Name)
-	//			repos += fmt.Sprintf("* %s\n", repo.Description)
-	//			repos += fmt.Sprintf("* %s\n", repo.Author)
-	//			repos += fmt.Sprintf("* %s\n", repo.Url)
-	//			repos += fmt.Sprintf("* %d\n\n", repo.Stars)
-	//		}
-	//		g.Update(func(g *gocui.Gui) error {
-	//			mainView, _ := g.View(MAIN_VIEW)
-	//			mainView.Clear()
-	//			fmt.Fprintln(mainView, repos)
-	//			return nil
-	//		})
-	//	}()
 	var reposChan chan string
 	reposChan = make(chan string)
 	go GetTrendingRepos(l, "daily", reposChan)
@@ -196,6 +180,5 @@ func getLine(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	})
 
-	//log.Println(<-reposChan)
 	return nil
 }
