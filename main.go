@@ -173,12 +173,27 @@ func getLine(g *gocui.Gui, v *gocui.View) error {
 	reposChan = make(chan string)
 	go GetTrendingRepos(l, "daily", reposChan)
 
+	mainView, err := getViewReference(g, MAIN_VIEW)
+	if err != nil {
+		return err
+	}
+	go updateView(g, mainView, <-reposChan)
+	return nil
+}
+
+func getViewReference(g *gocui.Gui, name string) (*gocui.View, error) {
+	view, err := g.View(name)
+	if err != nil {
+		return nil, err
+	}
+	return view, nil
+}
+
+func updateView(g *gocui.Gui, v *gocui.View, content string) error {
 	g.Update(func(g *gocui.Gui) error {
-		mainView, _ := g.View(MAIN_VIEW)
-		mainView.Clear()
-		fmt.Fprintln(mainView, <-reposChan)
+		v.Clear()
+		fmt.Fprintln(v, content)
 		return nil
 	})
-
 	return nil
 }
