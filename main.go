@@ -61,7 +61,7 @@ func main() {
 		log.Panicln(err)
 	}
 
-	if err := g.SetKeybinding(LANG_VIEW, gocui.KeyEnter, gocui.ModNone, getLine); err != nil {
+	if err := g.SetKeybinding(LANG_VIEW, gocui.KeyEnter, gocui.ModNone, fetchLangRepos); err != nil {
 		log.Panicln(err)
 	}
 
@@ -159,19 +159,21 @@ func nextView(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
-func getLine(g *gocui.Gui, v *gocui.View) error {
-	var l string
-	var err error
-
+func getCurrLine(v *gocui.View) string {
 	_, cy := v.Cursor()
-	if l, err = v.Line(cy); err != nil {
-		l = ""
+	l, err := v.Line(cy)
+	if err != nil {
+		return ""
 	}
-	log.Println("Searching for language: ", l)
+	return l
+}
 
-	var reposChan chan string
-	reposChan = make(chan string)
-	go GetTrendingRepos(l, "daily", reposChan)
+func fetchLangRepos(g *gocui.Gui, v *gocui.View) error {
+	currLang := getCurrLine(v)
+	log.Println("Searching for language: ", currLang)
+
+	reposChan := make(chan string)
+	go GetTrendingRepos(currLang, "daily", reposChan)
 
 	mainView, err := getViewReference(g, MAIN_VIEW)
 	if err != nil {
