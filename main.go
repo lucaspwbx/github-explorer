@@ -108,32 +108,45 @@ func addNewLang(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
-func layout(g *gocui.Gui) error {
-	createPromptView(g)
-	//widthTerm, heightTerm := g.Size()
-	//relWidth, _ := relativeSize(g)
+func createLangView(g *gocui.Gui) error {
+	_, heightTerm := g.Size()
+	relWidth, _ := relativeSize(g)
 
-	//	if langView, err := g.SetView(LANG_VIEW, 0, 0, relWidth, heightTerm-1); err != nil {
-	//		if err != gocui.ErrUnknownView {
-	//			return err
-	//		}
-	//		langView.Highlight = true
-	//		langView.SelBgColor = gocui.ColorGreen
-	//		langView.SelFgColor = gocui.ColorBlack
-	//		fmt.Fprintln(langView, "clojure")
-	//		fmt.Fprintln(langView, "go")
-	//		fmt.Fprintln(langView, "elixir")
-	//	}
-	//
-	//	if mainView, err := g.SetView(MAIN_VIEW, relWidth+1, 0, widthTerm-1, heightTerm-1); err != nil {
-	//		if err != gocui.ErrUnknownView {
-	//			return err
-	//		}
-	//		mainView.Wrap = true
-	//	}
-	//	if _, err := g.SetCurrentView(LANG_VIEW); err != nil {
-	//		return err
-	//	}
+	if langView, err := g.SetView(LANG_VIEW, 0, 0, relWidth, heightTerm-1); err != nil {
+		if err != gocui.ErrUnknownView {
+			return err
+		}
+		langView.Highlight = true
+		langView.SelBgColor = gocui.ColorGreen
+		langView.SelFgColor = gocui.ColorBlack
+		fmt.Fprintln(langView, "clojure")
+		fmt.Fprintln(langView, "go")
+		fmt.Fprintln(langView, "elixir")
+	}
+	return nil
+}
+
+func createMainView(g *gocui.Gui) error {
+	widthTerm, heightTerm := g.Size()
+	relWidth, _ := relativeSize(g)
+
+	if mainView, err := g.SetView(MAIN_VIEW, relWidth+1, 0, widthTerm-1, heightTerm-1); err != nil {
+		if err != gocui.ErrUnknownView {
+			return err
+		}
+		mainView.Wrap = true
+	}
+	return nil
+}
+
+func layout(g *gocui.Gui) error {
+	//createPromptView(g)
+	createLangView(g)
+	createMainView(g)
+
+	if _, err := g.SetCurrentView(LANG_VIEW); err != nil {
+		return err
+	}
 
 	return nil
 }
