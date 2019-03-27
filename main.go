@@ -54,7 +54,7 @@ func setKeyBindings(g *gocui.Gui) error {
 		log.Panicln(err)
 	}
 
-	if err := g.SetKeybinding(PROMPT_VIEW, gocui.KeyEnter, gocui.ModNone, foo); err != nil {
+	if err := g.SetKeybinding(PROMPT_VIEW, gocui.KeyEnter, gocui.ModNone, addNewLang); err != nil {
 		log.Panicln(err)
 	}
 	return nil
@@ -95,13 +95,15 @@ func createPromptView(g *gocui.Gui) error {
 	v.Editable = true
 
 	g.Cursor = true
-	_, err = g.SetCurrentView(PROMPT_VIEW)
+
+	// IMPORTANT part
+	//_, err = g.SetCurrentView(PROMPT_VIEW)
 
 	return err
 }
 
-func addNewLanguage(g *gocui.Gui, v *gocui.View) error {
-	newLang = strings.TrimSpace(v.Buffer())
+func addNewLang(g *gocui.Gui, v *gocui.View) error {
+	newLang := strings.TrimSpace(v.Buffer())
 	log.Println("Adding new language: ", newLang)
 	return nil
 }
