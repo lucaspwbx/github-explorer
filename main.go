@@ -140,13 +140,16 @@ func createMainView(g *gocui.Gui) error {
 }
 
 func layout(g *gocui.Gui) error {
-	//createPromptView(g)
 	createLangView(g)
 	createMainView(g)
 
 	if _, err := g.SetCurrentView(LANG_VIEW); err != nil {
 		return err
 	}
+
+	createPromptView(g)
+
+	_, _ = g.SetCurrentView(PROMPT_VIEW)
 
 	return nil
 }
