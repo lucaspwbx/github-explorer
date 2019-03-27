@@ -50,12 +50,28 @@ func setKeyBindings(g *gocui.Gui) error {
 		log.Panicln(err)
 	}
 
-	if err := g.SetKeybinding(LANG_VIEW, gocui.KeyCtrlN, gocui.ModNone, addLang); err != nil {
+	if err := g.SetKeybinding("", gocui.KeyCtrlN, gocui.ModNone, addLang); err != nil {
 		log.Panicln(err)
 	}
 
 	if err := g.SetKeybinding(PROMPT_VIEW, gocui.KeyEnter, gocui.ModNone, addNewLang); err != nil {
 		log.Panicln(err)
+	}
+
+	//teste
+	if err := g.SetKeybinding("", gocui.KeyCtrlX, gocui.ModNone, toggle); err != nil {
+		log.Panicln(err)
+	}
+	return nil
+}
+
+func toggle(g *gocui.Gui, v *gocui.View) error {
+	currView := g.CurrentView()
+	log.Println(currView)
+	_, err := g.SetCurrentView(LANG_VIEW)
+	if err != nil {
+		log.Println("erro foo")
+		return err
 	}
 	return nil
 }
@@ -84,6 +100,11 @@ func main() {
 	if err := g.MainLoop(); err != nil && err != gocui.ErrQuit {
 		log.Panicln(err)
 	}
+
+	_, err = g.SetCurrentView(LANG_VIEW)
+	if err != nil {
+		log.Println(err)
+	}
 }
 
 func createPromptView(g *gocui.Gui) error {
@@ -97,9 +118,22 @@ func createPromptView(g *gocui.Gui) error {
 	g.Cursor = true
 
 	// IMPORTANT part
-	//_, err = g.SetCurrentView(PROMPT_VIEW)
+	_, err = g.SetCurrentView(PROMPT_VIEW)
+	if err != nil {
+		log.Println("erro")
+		return err
+	}
+	//	log.Println(g.CurrentView())
 
-	return err
+	//setCurrentViewOnTop(g, PROMPT_VIEW)
+
+	return nil
+}
+
+func addLang(g *gocui.Gui, v *gocui.View) error {
+	// problem
+	createPromptView(g)
+	return nil
 }
 
 func addNewLang(g *gocui.Gui, v *gocui.View) error {
@@ -142,15 +176,11 @@ func createMainView(g *gocui.Gui) error {
 func layout(g *gocui.Gui) error {
 	createLangView(g)
 	createMainView(g)
+	//createPromptView(g)
 
-	if _, err := g.SetCurrentView(LANG_VIEW); err != nil {
-		return err
-	}
-
-	createPromptView(g)
-
-	_, _ = g.SetCurrentView(PROMPT_VIEW)
-
+	//	if _, err := g.SetCurrentView(LANG_VIEW); err != nil {
+	//		return err
+	//	}
 	return nil
 }
 
@@ -235,25 +265,6 @@ func fetchLangRepos(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 	go updateView(g, mainView, <-reposChan)
-	return nil
-}
-
-func addLang(g *gocui.Gui, v *gocui.View) error {
-	log.Println("addLang function, current view: ", v)
-
-	maxX, maxY := g.Size()
-	if v, err := g.SetView("msg", maxX/2-30, maxY/2, maxX/2+30, maxY/2+2); err != nil {
-		if err != gocui.ErrUnknownView {
-			return err
-		}
-		fmt.Fprintln(v, "foobar")
-		v.Editable = true
-		g.Cursor = true
-		setCurrentViewOnTop(g, "msg")
-		//	if _, err := g.SetCurrentView("msg"); err != nil {
-		//		return err
-		//	}
-	}
 	return nil
 }
 
