@@ -2,14 +2,17 @@ package main
 
 import (
 	"fmt"
-	"github.com/jroimartin/gocui"
 	"log"
 	"os"
+	"strings"
+
+	"github.com/jroimartin/gocui"
 )
 
 const (
-	LANG_VIEW = "languages"
-	MAIN_VIEW = "main"
+	LANG_VIEW   = "languages"
+	MAIN_VIEW   = "main"
+	PROMPT_VIEW = "prompt"
 )
 
 var (
@@ -50,6 +53,10 @@ func setKeyBindings(g *gocui.Gui) error {
 	if err := g.SetKeybinding(LANG_VIEW, gocui.KeyCtrlN, gocui.ModNone, addLang); err != nil {
 		log.Panicln(err)
 	}
+
+	if err := g.SetKeybinding(PROMPT_VIEW, gocui.KeyEnter, gocui.ModNone, foo); err != nil {
+		log.Panicln(err)
+	}
 	return nil
 }
 
@@ -79,31 +86,52 @@ func main() {
 	}
 }
 
-func layout(g *gocui.Gui) error {
-	widthTerm, heightTerm := g.Size()
-
-	relWidth, _ := relativeSize(g)
-	if langView, err := g.SetView(LANG_VIEW, 0, 0, relWidth, heightTerm-1); err != nil {
-		if err != gocui.ErrUnknownView {
-			return err
-		}
-		langView.Highlight = true
-		langView.SelBgColor = gocui.ColorGreen
-		langView.SelFgColor = gocui.ColorBlack
-		fmt.Fprintln(langView, "clojure")
-		fmt.Fprintln(langView, "go")
-		fmt.Fprintln(langView, "elixir")
-	}
-
-	if mainView, err := g.SetView(MAIN_VIEW, relWidth+1, 0, widthTerm-1, heightTerm-1); err != nil {
-		if err != gocui.ErrUnknownView {
-			return err
-		}
-		mainView.Wrap = true
-	}
-	if _, err := g.SetCurrentView(LANG_VIEW); err != nil {
+func createPromptView(g *gocui.Gui) error {
+	widthT, heightT := g.Size()
+	v, err := g.SetView(PROMPT_VIEW, widthT/6, (heightT/2)-1, (widthT*5)/6, (heightT/2)+1)
+	if err != nil && err != gocui.ErrUnknownView {
 		return err
 	}
+	v.Editable = true
+
+	g.Cursor = true
+	_, err = g.SetCurrentView(PROMPT_VIEW)
+
+	return err
+}
+
+func addNewLanguage(g *gocui.Gui, v *gocui.View) error {
+	newLang = strings.TrimSpace(v.Buffer())
+	log.Println("Adding new language: ", newLang)
+	return nil
+}
+
+func layout(g *gocui.Gui) error {
+	createPromptView(g)
+	//widthTerm, heightTerm := g.Size()
+	//relWidth, _ := relativeSize(g)
+
+	//	if langView, err := g.SetView(LANG_VIEW, 0, 0, relWidth, heightTerm-1); err != nil {
+	//		if err != gocui.ErrUnknownView {
+	//			return err
+	//		}
+	//		langView.Highlight = true
+	//		langView.SelBgColor = gocui.ColorGreen
+	//		langView.SelFgColor = gocui.ColorBlack
+	//		fmt.Fprintln(langView, "clojure")
+	//		fmt.Fprintln(langView, "go")
+	//		fmt.Fprintln(langView, "elixir")
+	//	}
+	//
+	//	if mainView, err := g.SetView(MAIN_VIEW, relWidth+1, 0, widthTerm-1, heightTerm-1); err != nil {
+	//		if err != gocui.ErrUnknownView {
+	//			return err
+	//		}
+	//		mainView.Wrap = true
+	//	}
+	//	if _, err := g.SetCurrentView(LANG_VIEW); err != nil {
+	//		return err
+	//	}
 
 	return nil
 }
