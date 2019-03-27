@@ -58,28 +58,12 @@ func setKeyBindings(g *gocui.Gui) error {
 		log.Panicln(err)
 	}
 
-	//teste
-	if err := g.SetKeybinding("", gocui.KeyCtrlX, gocui.ModNone, toggle); err != nil {
-		log.Panicln(err)
-	}
-	return nil
-}
-
-func toggle(g *gocui.Gui, v *gocui.View) error {
-	currView := g.CurrentView()
-	log.Println(currView)
-	_, err := g.SetCurrentView(LANG_VIEW)
-	if err != nil {
-		log.Println("erro foo")
-		return err
-	}
 	return nil
 }
 
 func main() {
 	g, err := gocui.NewGui(gocui.OutputNormal)
 	if err != nil {
-		//	log.Panicln(err)
 		log.Fatal("Failed to initialize GUI", err)
 	}
 	defer g.Close()
@@ -117,21 +101,16 @@ func createPromptView(g *gocui.Gui) error {
 
 	g.Cursor = true
 
-	// IMPORTANT part
 	_, err = g.SetCurrentView(PROMPT_VIEW)
 	if err != nil {
 		log.Println("erro")
 		return err
 	}
-	//	log.Println(g.CurrentView())
-
-	//setCurrentViewOnTop(g, PROMPT_VIEW)
 
 	return nil
 }
 
 func addLang(g *gocui.Gui, v *gocui.View) error {
-	// problem
 	createPromptView(g)
 	return nil
 }
@@ -176,11 +155,6 @@ func createMainView(g *gocui.Gui) error {
 func layout(g *gocui.Gui) error {
 	createLangView(g)
 	createMainView(g)
-	//createPromptView(g)
-
-	//	if _, err := g.SetCurrentView(LANG_VIEW); err != nil {
-	//		return err
-	//	}
 	return nil
 }
 
@@ -260,20 +234,12 @@ func fetchLangRepos(g *gocui.Gui, v *gocui.View) error {
 	reposChan := make(chan string)
 	go GetTrendingRepos(currLang, "daily", reposChan)
 
-	mainView, err := getViewReference(g, MAIN_VIEW)
+	mainView, err := g.View(MAIN_VIEW)
 	if err != nil {
 		return err
 	}
 	go updateView(g, mainView, <-reposChan)
 	return nil
-}
-
-func getViewReference(g *gocui.Gui, name string) (*gocui.View, error) {
-	view, err := g.View(name)
-	if err != nil {
-		return nil, err
-	}
-	return view, nil
 }
 
 func updateView(g *gocui.Gui, v *gocui.View, content string) error {
