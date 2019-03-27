@@ -81,13 +81,14 @@ func main() {
 
 	setKeyBindings(g)
 
+	// important to set focus on the languates panel right on the start
+	go g.Update(func(g *gocui.Gui) error {
+		g.SetCurrentView(LANG_VIEW)
+		return nil
+	})
+
 	if err := g.MainLoop(); err != nil && err != gocui.ErrQuit {
 		log.Panicln(err)
-	}
-
-	_, err = g.SetCurrentView(LANG_VIEW)
-	if err != nil {
-		log.Println(err)
 	}
 }
 
@@ -100,12 +101,16 @@ func createPromptView(g *gocui.Gui) error {
 	v.Editable = true
 
 	g.Cursor = true
+	//g.Highlight = true
 
-	_, err = g.SetCurrentView(PROMPT_VIEW)
+	t, err := g.SetCurrentView(PROMPT_VIEW)
 	if err != nil {
-		log.Println("erro")
+		log.Println("error setting the current view to prompt view")
 		return err
 	}
+	log.Println(t)
+
+	g.SetViewOnTop(PROMPT_VIEW)
 
 	return nil
 }
@@ -136,6 +141,11 @@ func createLangView(g *gocui.Gui) error {
 		fmt.Fprintln(langView, "go")
 		fmt.Fprintln(langView, "elixir")
 	}
+
+	//	_, err := g.SetCurrentView(LANG_VIEW)
+	//	if err != nil {
+	//		log.Println("erro lang view")
+	//	}
 	return nil
 }
 
@@ -153,8 +163,15 @@ func createMainView(g *gocui.Gui) error {
 }
 
 func layout(g *gocui.Gui) error {
-	createLangView(g)
 	createMainView(g)
+	createLangView(g)
+	//log.Println("CUrrent view: ", g.CurrentView)
+	v := g.CurrentView()
+	if v != nil {
+		log.Println(v.Name())
+	} else {
+		log.Println("nenhum foco")
+	}
 	return nil
 }
 
@@ -206,7 +223,6 @@ func setCurrentViewOnTop(g *gocui.Gui, name string) (*gocui.View, error) {
 	return g.SetViewOnTop(name)
 }
 
-// apparently not working
 func nextView(g *gocui.Gui, v *gocui.View) error {
 	nextIndex := (active + 1) % len(viewArr)
 	name := viewArr[nextIndex]
