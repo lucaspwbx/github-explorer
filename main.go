@@ -112,7 +112,7 @@ func createPromptView(g *gocui.Gui) error {
 		log.Println("error setting the current view to prompt view")
 		return err
 	}
-	//log.Println(t)
+	log.Println(t)
 
 	g.SetViewOnTop(PROMPT_VIEW)
 
@@ -127,6 +127,13 @@ func addLang(g *gocui.Gui, v *gocui.View) error {
 func addNewLang(g *gocui.Gui, v *gocui.View) error {
 	newLang := strings.TrimSpace(v.Buffer())
 	log.Println("Adding new language: ", newLang)
+	langView, err := g.View(LANG_VIEW)
+	if err != nil {
+		return err
+	}
+	fmt.Fprintln(langView, newLang)
+	g.DeleteView(PROMPT_VIEW)
+	g.SetCurrentView(LANG_VIEW)
 	return nil
 }
 
@@ -171,11 +178,11 @@ func layout(g *gocui.Gui) error {
 	createLangView(g)
 	//log.Println("CUrrent view: ", g.CurrentView)
 	v := g.CurrentView()
-	//if v != nil {
-	//log.Println(v.Name())
-	//} else {
-	//log.Println("nenhum foco")
-	//}
+	if v != nil {
+		log.Println(v.Name())
+	} else {
+		log.Println("nenhum foco")
+	}
 	return nil
 }
 
