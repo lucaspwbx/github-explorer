@@ -34,6 +34,10 @@ func setKeyBindings(g *gocui.Gui) error {
 		log.Panicln(err)
 	}
 
+	if err := g.SetKeybinding(MAIN_VIEW, gocui.KeyArrowUp, gocui.ModNone, goUp); err != nil {
+		log.Panicln(err)
+	}
+
 	if err := g.SetKeybinding(LANG_VIEW, gocui.KeyArrowDown, gocui.ModNone, goDownLang); err != nil {
 		log.Panicln(err)
 	}
@@ -108,7 +112,7 @@ func createPromptView(g *gocui.Gui) error {
 		log.Println("error setting the current view to prompt view")
 		return err
 	}
-	log.Println(t)
+	//log.Println(t)
 
 	g.SetViewOnTop(PROMPT_VIEW)
 
@@ -167,11 +171,11 @@ func layout(g *gocui.Gui) error {
 	createLangView(g)
 	//log.Println("CUrrent view: ", g.CurrentView)
 	v := g.CurrentView()
-	if v != nil {
-		log.Println(v.Name())
-	} else {
-		log.Println("nenhum foco")
-	}
+	//if v != nil {
+	//log.Println(v.Name())
+	//} else {
+	//log.Println("nenhum foco")
+	//}
 	return nil
 }
 
@@ -209,6 +213,20 @@ func goUpLang(g *gocui.Gui, v *gocui.View) error {
 	cx, cy := v.Cursor()
 	if err := v.SetCursor(cx, cy-1); err != nil {
 		ox, oy := v.Origin()
+		if err := v.SetOrigin(ox, oy-1); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+//it has a bug when it reaches the top of the panel, check out
+func goUp(g *gocui.Gui, v *gocui.View) error {
+	cx, cy := v.Cursor()
+	log.Println("cy: ", cy)
+	if err := v.SetCursor(cx, cy-1); err != nil {
+		ox, oy := v.Origin()
+		log.Println("oy: ", oy)
 		if err := v.SetOrigin(ox, oy-1); err != nil {
 			return err
 		}
