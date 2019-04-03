@@ -2,11 +2,13 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"strings"
 
 	"github.com/jroimartin/gocui"
+	"olympos.io/encoding/edn"
 )
 
 const (
@@ -14,6 +16,10 @@ const (
 	MAIN_VIEW   = "main"
 	PROMPT_VIEW = "prompt"
 )
+
+type Config struct {
+	Languages []string `edn:"languages"`
+}
 
 var (
 	viewArr = []string{LANG_VIEW, MAIN_VIEW}
@@ -83,11 +89,25 @@ func main() {
 	defer file.Close()
 	log.SetOutput(file)
 
+	dat, err := ioutil.ReadFile("config.edn")
+	if err != nil {
+		log.Fatal(err)
+	}
+	var c Config
+	err = edn.Unmarshal(dat, &c)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Println(c.Languages)
+
 	setKeyBindings(g)
 
 	// important to set focus on the languates panel right on the start
 	go g.Update(func(g *gocui.Gui) error {
-		g.SetCurrentView(LANG_VIEW)
+		v, _ := g.SetCurrentView(LANG_VIEW)
+		for _, lang := range c.Languages {
+			fmt.Fprintln(v, lang)
+		}
 		return nil
 	})
 
@@ -107,12 +127,13 @@ func createPromptView(g *gocui.Gui) error {
 	g.Cursor = true
 	//g.Highlight = true
 
-	t, err := g.SetCurrentView(PROMPT_VIEW)
+	//t, err := g.SetCurrentView(PROMPT_VIEW)
+	_, err = g.SetCurrentView(PROMPT_VIEW)
 	if err != nil {
 		log.Println("error setting the current view to prompt view")
 		return err
 	}
-	log.Println(t)
+	//log.Println(t)
 
 	g.SetViewOnTop(PROMPT_VIEW)
 
@@ -148,9 +169,6 @@ func createLangView(g *gocui.Gui) error {
 		langView.Highlight = true
 		langView.SelBgColor = gocui.ColorGreen
 		langView.SelFgColor = gocui.ColorBlack
-		fmt.Fprintln(langView, "clojure")
-		fmt.Fprintln(langView, "go")
-		fmt.Fprintln(langView, "elixir")
 	}
 
 	//	_, err := g.SetCurrentView(LANG_VIEW)
@@ -177,12 +195,12 @@ func layout(g *gocui.Gui) error {
 	createMainView(g)
 	createLangView(g)
 	//log.Println("CUrrent view: ", g.CurrentView)
-	v := g.CurrentView()
-	if v != nil {
-		log.Println(v.Name())
-	} else {
-		log.Println("nenhum foco")
-	}
+	//v := g.CurrentView()
+	//if v != nil {
+	//log.Println(v.Name())
+	//} else {
+	//log.Println("nenhum foco")
+	//}
 	return nil
 }
 
