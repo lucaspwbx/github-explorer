@@ -100,23 +100,9 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println(c.Languages)
+	//log.Println(c.Languages)
 
 	setKeyBindings(g)
-
-	c.Languages = append(c.Languages, "foobar")
-	//bs, _ := edn.Marshal(c.Languages)
-	bs, _ := edn.MarshalPPrint(c, nil)
-	log.Println(string(bs))
-
-	configFile, err := os.OpenFile("config.edn", os.O_WRONLY, 0644)
-	if err != nil {
-		log.Fatal(err)
-	}
-	_, err = configFile.WriteAt(bs, 0)
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	// important to set focus on the languates panel right on the start
 	go g.Update(func(g *gocui.Gui) error {
@@ -163,15 +149,37 @@ func addLang(g *gocui.Gui, v *gocui.View) error {
 
 func addNewLang(g *gocui.Gui, v *gocui.View) error {
 	newLang := strings.TrimSpace(v.Buffer())
-	log.Println("Adding new language: ", newLang)
 	langView, err := g.View(LANG_VIEW)
 	if err != nil {
 		return err
 	}
 	fmt.Fprintln(langView, newLang)
-	//saveLang(newLang)
+	go saveLang(newLang)
 	g.DeleteView(PROMPT_VIEW)
 	g.SetCurrentView(LANG_VIEW)
+	return nil
+}
+
+func saveLang(newLang string) error {
+	c.Languages = append(c.Languages, newLang)
+	bs, err := edn.MarshalPPrint(c, nil)
+	if err != nil {
+		log.Println("Error marshaling config struct")
+		return err
+	}
+
+	configFile, err := os.OpenFile("config.edn", os.O_WRONLY, 0644)
+	if err != nil {
+		log.Println("Error opening edn config file")
+		return err
+	}
+
+	_, err = configFile.WriteAt(bs, 0)
+	if err != nil {
+		log.Println("Error writing to config file")
+		return err
+	}
+	log.Println("Added new language to the config file")
 	return nil
 }
 
